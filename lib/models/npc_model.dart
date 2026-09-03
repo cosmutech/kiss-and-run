@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'reaction_model.dart';
 
-enum NPCState { idle, strolling, shocked, reacting, chasing, runningAway, following }
+enum NPCState { waiting, strolling, reacting, chasing }
 
 class NPCModel {
   final String id;
@@ -14,13 +14,10 @@ class NPCModel {
   final Color skinTone;
   final String accessoryEmoji;
 
-  double x;
-  double y;
-  double vx;
-  double vy;
-  double baseSpeed;
-  double currentSpeed;
-  double facingDirection; // 1.0 = right, -1.0 = left
+  // 3D Lane placement: -1 = Left Lane, 0 = Center Lane, 1 = Right Lane, -1.8 = Left Sidewalk, 1.8 = Right Sidewalk
+  double lane;
+  double z; // Distance along track
+  double speed;
 
   NPCState state;
   ReactionDefinition? activeReaction;
@@ -30,11 +27,8 @@ class NPCModel {
 
   bool isKissed;
   bool isChasing;
-  bool isFollowing;
-  bool isAlerted;
   bool canBeKissed;
 
-  // Personality weights for reactions
   final Map<String, double> reactionWeights;
 
   NPCModel({
@@ -47,22 +41,16 @@ class NPCModel {
     required this.pantsColor,
     required this.skinTone,
     this.accessoryEmoji = '',
-    required this.x,
-    required this.y,
-    this.vx = 0,
-    this.vy = 0,
-    this.baseSpeed = 100.0,
-    this.currentSpeed = 100.0,
-    this.facingDirection = -1.0,
-    this.state = NPCState.strolling,
+    required this.lane,
+    required this.z,
+    this.speed = 0.0,
+    this.state = NPCState.waiting,
     this.activeReaction,
     this.reactionTimer = 0.0,
     this.speechBubble,
     this.speechBubbleTimer = 0.0,
     this.isKissed = false,
     this.isChasing = false,
-    this.isFollowing = false,
-    this.isAlerted = false,
     this.canBeKissed = true,
     required this.reactionWeights,
   });
@@ -75,29 +63,13 @@ class NPCModel {
     isKissed = true;
     canBeKissed = false;
 
-    switch (reaction.consequence) {
-      case ConsequenceType.chasePlayer:
-      case ConsequenceType.callFriends:
-      case ConsequenceType.callPolice:
-        state = NPCState.chasing;
-        isChasing = true;
-        currentSpeed = baseSpeed * 1.55;
-        break;
-      case ConsequenceType.timeSlow:
-        state = NPCState.shocked;
-        currentSpeed = 0;
-        break;
-      case ConsequenceType.followerBonus:
-        state = NPCState.following;
-        isFollowing = true;
-        break;
-      case ConsequenceType.slapDamage:
-        state = NPCState.reacting;
-        currentSpeed = 0;
-        break;
-      default:
-        state = NPCState.reacting;
-        break;
+    if (reaction.consequence == ConsequenceType.chasePlayer ||
+        reaction.consequence == ConsequenceType.callFriends ||
+        reaction.consequence == ConsequenceType.callPolice) {
+      state = NPCState.chasing;
+      isChasing = true;
+    } else {
+      state = NPCState.reacting;
     }
   }
 

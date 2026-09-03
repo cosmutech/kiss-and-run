@@ -1,13 +1,19 @@
-
-enum PlayerState { idle, walking, running, kissing, slapped, sliding, jumping }
+enum PlayerState { idle, running, jumping, sliding, kissing, slapped }
 
 class PlayerModel {
-  double x;
-  double y;
-  double vx;
-  double vy;
+  // 3D Lane System: -1 = Left, 0 = Center, 1 = Right
+  int targetLane;
+  double currentLanePos; // Smoothly interpolates to targetLane
+  double z; // Forward position along the track
+  double speed;
   double baseSpeed;
-  double currentSpeed;
+
+  // Vertical movement (Jump & Slide)
+  double jumpY; // 0 = on ground, >0 = in air
+  double jumpVy;
+  double slideTimer; // >0 means sliding
+  final double slideDuration = 0.7;
+
   int health;
   final int maxHealth;
 
@@ -17,11 +23,16 @@ class PlayerModel {
   int hairColorIndex;
   int shirtColorIndex;
   int pantsColorIndex;
-  int accessoryIndex; // 0: None, 1: Cool Shades, 2: Cap, 3: Headphones, 4: Red Bandana
+  int accessoryIndex;
 
   PlayerState state;
   double stateTimer;
-  double facingDirection; // 1.0 = right, -1.0 = left
+
+  // The Chaser breathing down your neck (Subway Surfers / Temple Run mechanic!)
+  bool hasChaser;
+  double chaserDistance; // 100 = safe distance, 0 = tackles player!
+  String chaserTypeId;
+  String chaserName;
 
   // Buffs and timers
   bool hasShield;
@@ -32,15 +43,16 @@ class PlayerModel {
   double chaosTimer;
   double invincibilityTimer;
   double stunTimer;
-  double jumpProgress; // 0.0 to 1.0
 
   PlayerModel({
-    this.x = 200,
-    this.y = 500,
-    this.vx = 0,
-    this.vy = 0,
-    this.baseSpeed = 220.0,
-    this.currentSpeed = 220.0,
+    this.targetLane = 0,
+    this.currentLanePos = 0.0,
+    this.z = 0.0,
+    this.baseSpeed = 380.0,
+    this.speed = 380.0,
+    this.jumpY = 0.0,
+    this.jumpVy = 0.0,
+    this.slideTimer = 0.0,
     this.health = 3,
     this.maxHealth = 3,
     this.gender = 'male',
@@ -50,9 +62,12 @@ class PlayerModel {
     this.shirtColorIndex = 0,
     this.pantsColorIndex = 0,
     this.accessoryIndex = 0,
-    this.state = PlayerState.idle,
+    this.state = PlayerState.running,
     this.stateTimer = 0.0,
-    this.facingDirection = 1.0,
+    this.hasChaser = false,
+    this.chaserDistance = 100.0,
+    this.chaserTypeId = 'angry_guy',
+    this.chaserName = 'Angry Guy',
     this.hasShield = false,
     this.speedBoostTimer = 0.0,
     this.magnetTimer = 0.0,
@@ -61,9 +76,10 @@ class PlayerModel {
     this.chaosTimer = 0.0,
     this.invincibilityTimer = 0.0,
     this.stunTimer = 0.0,
-    this.jumpProgress = 0.0,
   });
 
+  bool get isJumping => jumpY > 0.01;
+  bool get isSliding => slideTimer > 0;
   bool get isInvincible => invincibilityTimer > 0;
   bool get hasSpeedBoost => speedBoostTimer > 0;
   bool get hasMagnet => magnetTimer > 0;
@@ -71,7 +87,28 @@ class PlayerModel {
   bool get isAngel => angelTimer > 0;
   bool get isChaos => chaosTimer > 0;
   bool get isStunned => stunTimer > 0;
-  bool get isJumping => jumpProgress > 0;
+
+  void switchLane(int direction) {
+    targetLane = (targetLane + direction).clamp(-1, 1);
+  }
+
+  void jump() {
+    if (!isJumping && !isSliding && !isStunned) {
+      jumpVy = 520.0;
+      state = PlayerState.jumping;
+    }
+  }
+
+  void slide() {
+    if (isJumping) {
+      // Fast drop down (like Subway Surfers!)
+      jumpVy = -600.0;
+    }
+    if (!isSliding && !isStunned) {
+      slideTimer = slideDuration;
+      state = PlayerState.sliding;
+    }
+  }
 
   void takeDamage(int amount) {
     if (isInvincible) return;
@@ -84,20 +121,22 @@ class PlayerModel {
     invincibilityTimer = 1.8;
     stunTimer = 0.4;
     state = PlayerState.slapped;
+    // Stumble causes chaser to close in!
+    chaserDistance = (chaserDistance - 40).clamp(0.0, 100.0);
   }
 
-  void heal(int amount) {
-    health = (health + amount).clamp(0, maxHealth);
-  }
-
-  void reset({double startX = 200, double startY = 500}) {
-    x = startX;
-    y = startY;
-    vx = 0;
-    vy = 0;
+  void reset() {
+    targetLane = 0;
+    currentLanePos = 0.0;
+    z = 0.0;
+    jumpY = 0.0;
+    jumpVy = 0.0;
+    slideTimer = 0.0;
     health = maxHealth;
-    state = PlayerState.idle;
+    state = PlayerState.running;
     stateTimer = 0;
+    hasChaser = false;
+    chaserDistance = 100.0;
     hasShield = false;
     speedBoostTimer = 0;
     magnetTimer = 0;
@@ -106,6 +145,5 @@ class PlayerModel {
     chaosTimer = 0;
     invincibilityTimer = 0;
     stunTimer = 0;
-    jumpProgress = 0;
   }
 }

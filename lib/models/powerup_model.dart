@@ -6,8 +6,9 @@ class PowerUpModel {
   final String name;
   final String iconEmoji;
   final String description;
-  final double duration; // in seconds
-  double x;
+  final double duration;
+  double lane;
+  double z;
   double y;
   bool isCollected;
 
@@ -17,9 +18,10 @@ class PowerUpModel {
     required this.name,
     required this.iconEmoji,
     required this.description,
-    this.duration = 6.0,
-    required this.x,
-    required this.y,
+    this.duration = 7.0,
+    required this.lane,
+    required this.z,
+    this.y = 0.0,
     this.isCollected = false,
   });
 }

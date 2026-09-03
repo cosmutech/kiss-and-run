@@ -4,7 +4,7 @@ import 'package:flutter/scheduler.dart';
 import '../../models/level_model.dart';
 import '../../data/level_definitions.dart';
 import '../../systems/game_controller.dart';
-import '../../rendering/game_world_painter.dart';
+import '../../rendering/game_world_3d_painter.dart';
 import '../widgets/game_hud.dart';
 import '../widgets/game_over_dialog.dart';
 import '../widgets/victory_dialog.dart';
@@ -23,6 +23,9 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
   late GameController _controller;
   Duration _lastElapsed = Duration.zero;
 
+  // Swipe gesture tracking (Subway Surfers / Temple Run controls!)
+  Offset? _dragStart;
+
   @override
   void initState() {
     super.initState();
@@ -37,7 +40,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
       final dt = (elapsed - _lastElapsed).inMicroseconds / 1000000.0;
       _lastElapsed = elapsed;
 
-      // Cap delta time to prevent physics anomalies on frame drops
+      // Safe delta time clamp to prevent physics jumps
       final safeDt = dt.clamp(0.001, 0.05);
       _controller.update(safeDt);
     });
@@ -54,6 +57,37 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
     _ticker.dispose();
     _controller.removeListener(_onControllerUpdate);
     super.dispose();
+  }
+
+  void _handlePanStart(DragStartDetails details) {
+    _dragStart = details.localPosition;
+  }
+
+  void _handlePanEnd(DragEndDetails details) {
+    if (_dragStart == null) return;
+    final velocity = details.velocity.pixelsPerSecond;
+    final vx = velocity.dx;
+    final vy = velocity.dy;
+
+    // Minimum velocity threshold for swipe
+    if (vx.abs() > 150 || vy.abs() > 150) {
+      if (vx.abs() > vy.abs()) {
+        // Horizontal Swipe (Left / Right Lane Switch)
+        if (vx < 0) {
+          _controller.swipeLeft();
+        } else {
+          _controller.swipeRight();
+        }
+      } else {
+        // Vertical Swipe (Jump / Slide)
+        if (vy < 0) {
+          _controller.swipeUp(); // Jump
+        } else {
+          _controller.swipeDown(); // Slide
+        }
+      }
+    }
+    _dragStart = null;
   }
 
   void _handlePause() {
@@ -99,7 +133,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    // Screen shake offset calculation
+    // Screen shake calculation
     double shakeX = 0;
     double shakeY = 0;
     if (_controller.screenShake > 0) {
@@ -109,63 +143,74 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Canvas rendering viewport with subtle screen shake
-          Transform.translate(
-            offset: Offset(shakeX, shakeY),
-            child: CustomPaint(
-              size: Size.infinite,
-              painter: GameWorldPainter(
-                player: _controller.player,
-                npcs: _controller.npcs,
-                obstacles: _controller.obstacles,
-                powerUps: _controller.powerUps,
-                level: _controller.currentLevel,
-                particleSystem: _controller.particleSystem,
-                floatingTexts: _controller.floatingTexts,
-                cameraX: _controller.cameraX,
-                animTime: _controller.animTime,
-              ),
-            ),
-          ),
-
-          // Heads-up Display (HUD)
-          GameHUD(
-            controller: _controller,
-            onPause: _handlePause,
-          ),
-
-          // Game Over Screen Modal
-          if (_controller.status == GameStatus.gameOver)
-            Container(
-              color: Colors.black54,
-              child: GameOverDialog(
-                controller: _controller,
-                onHome: () => Navigator.pop(context),
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onPanStart: _handlePanStart,
+        onPanEnd: _handlePanEnd,
+        onDoubleTap: () {
+          // Double-tap anywhere to kiss if in range!
+          if (_controller.eligibleKissTarget != null) {
+            _controller.performKiss();
+          }
+        },
+        child: Stack(
+          children: [
+            // 3D Perspective Viewport (Subway Surfers / Temple Run Camera)
+            Transform.translate(
+              offset: Offset(shakeX, shakeY),
+              child: CustomPaint(
+                size: Size.infinite,
+                painter: GameWorld3DPainter(
+                  player: _controller.player,
+                  npcs: _controller.npcs,
+                  obstacles: _controller.obstacles,
+                  coins: _controller.coins,
+                  powerUps: _controller.powerUps,
+                  level: _controller.currentLevel,
+                  particleSystem: _controller.particleSystem,
+                  floatingTexts: _controller.floatingTexts,
+                  animTime: _controller.animTime,
+                ),
               ),
             ),
 
-          // Level Complete Modal
-          if (_controller.status == GameStatus.levelComplete)
-            Container(
-              color: Colors.black54,
-              child: VictoryDialog(
-                controller: _controller,
-                onNextLevel: () {
-                  final nextNum = widget.level.levelNumber + 1;
-                  final nextLevel = LevelDefinitions.getByNumber(nextNum);
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (ctx) => GameScreen(level: nextLevel),
-                    ),
-                  );
-                },
-                onHome: () => Navigator.pop(context),
-              ),
+            // Heads-up Display (HUD) with Controls and Kiss Button
+            GameHUD(
+              controller: _controller,
+              onPause: _handlePause,
             ),
-        ],
+
+            // Game Over Screen Modal
+            if (_controller.status == GameStatus.gameOver)
+              Container(
+                color: Colors.black54,
+                child: GameOverDialog(
+                  controller: _controller,
+                  onHome: () => Navigator.pop(context),
+                ),
+              ),
+
+            // Level Complete Modal
+            if (_controller.status == GameStatus.levelComplete)
+              Container(
+                color: Colors.black54,
+                child: VictoryDialog(
+                  controller: _controller,
+                  onNextLevel: () {
+                    final nextNum = widget.level.levelNumber + 1;
+                    final nextLevel = LevelDefinitions.getByNumber(nextNum);
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (ctx) => GameScreen(level: nextLevel),
+                      ),
+                    );
+                  },
+                  onHome: () => Navigator.pop(context),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

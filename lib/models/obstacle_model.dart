@@ -1,17 +1,20 @@
-enum ObstacleType { bananaPeel, coffeeSpill, luggage, barricade, foodCart, dog, thrownObject }
+enum ObstacleType {
+  roadblockLow,     // Low barrier: MUST JUMP! (Subway Surfers style)
+  overheadBarrier,  // Overhead sign/barrier: MUST SLIDE!
+  bananaPeel,       // Slip hazard: causes spin/stumble!
+  foodCart,         // Food cart in lane: triggers domino crash!
+  dogAlert,         // Dog on sidewalk/lane
+}
 
 class ObstacleModel {
   final String id;
   final ObstacleType type;
   final String name;
   final String emoji;
-  double x;
-  double y;
-  double vx;
-  double vy;
-  double width;
-  double height;
-  bool isTriggered;
+  double lane; // -1, 0, 1
+  double z; // distance along track
+  bool requiresJump;
+  bool requiresSlide;
   bool hasCollided;
 
   ObstacleModel({
@@ -19,13 +22,26 @@ class ObstacleModel {
     required this.type,
     required this.name,
     required this.emoji,
-    required this.x,
-    required this.y,
-    this.vx = 0,
-    this.vy = 0,
-    this.width = 36.0,
-    this.height = 36.0,
-    this.isTriggered = false,
+    required this.lane,
+    required this.z,
+    this.requiresJump = false,
+    this.requiresSlide = false,
     this.hasCollided = false,
+  });
+}
+
+class HeartCoinModel {
+  final String id;
+  double lane;
+  double z;
+  double y; // height for jumping coin arcs!
+  bool isCollected;
+
+  HeartCoinModel({
+    required this.id,
+    required this.lane,
+    required this.z,
+    this.y = 0.0,
+    this.isCollected = false,
   });
 }

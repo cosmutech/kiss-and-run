@@ -13,6 +13,8 @@ class GameHUD extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final canKiss = controller.eligibleKissTarget != null;
+
     return SafeArea(
       child: Stack(
         children: [
@@ -39,7 +41,7 @@ class GameHUD extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 2.0),
                         child: Text(
                           index < controller.player.health ? '❤️' : '🖤',
-                          style: const TextStyle(fontSize: 20),
+                          style: const TextStyle(fontSize: 18),
                         ),
                       ),
                     ),
@@ -86,7 +88,7 @@ class GameHUD extends StatelessWidget {
                           '🔥 COMBO x${controller.combo}',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 14,
+                            fontSize: 13,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -95,7 +97,7 @@ class GameHUD extends StatelessWidget {
                   ],
                 ),
 
-                // Heart Coins and Pause Button
+                // Coins and Pause
                 Row(
                   children: [
                     Container(
@@ -107,12 +109,12 @@ class GameHUD extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          const Text('💰 ', style: TextStyle(fontSize: 16)),
+                          const Text('💰 ', style: TextStyle(fontSize: 15)),
                           Text(
                             '${controller.runHeartCoins}',
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 16,
+                              fontSize: 15,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -130,10 +132,60 @@ class GameHUD extends StatelessWidget {
             ),
           ),
 
+          // Chaser Proximity Alert Bar (Subway Surfers style inspector behind you!)
+          if (controller.player.hasChaser)
+            Positioned(
+              top: 75,
+              left: 30,
+              right: 30,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade900.withOpacity(0.85),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.redAccent, width: 2),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      controller.player.chaserTypeId == 'police_officer' ? '🚨' : '🤬',
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'PURSUER: ${controller.player.chaserName.toUpperCase()}',
+                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 3),
+                          LinearProgressIndicator(
+                            value: (controller.player.chaserDistance / 100.0).clamp(0.0, 1.0),
+                            backgroundColor: Colors.black54,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              controller.player.chaserDistance < 35 ? Colors.redAccent : Colors.amber,
+                            ),
+                            minHeight: 6,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      controller.player.chaserDistance < 35 ? '⚠️ CLOSE!' : 'ESC: ${(controller.player.chaserDistance).toInt()}%',
+                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           // Comic Event Banner
           if (controller.activeEventBanner != null)
             Positioned(
-              top: 75,
+              top: controller.player.hasChaser ? 125 : 75,
               left: 20,
               right: 20,
               child: Center(
@@ -151,7 +203,7 @@ class GameHUD extends StatelessWidget {
                     controller.activeEventBanner!,
                     style: const TextStyle(
                       color: Colors.black,
-                      fontSize: 18,
+                      fontSize: 17,
                       fontWeight: FontWeight.w900,
                     ),
                     textAlign: TextAlign.center,
@@ -160,42 +212,99 @@ class GameHUD extends StatelessWidget {
               ),
             ),
 
-          // Level Objective Indicator
-          if (!controller.currentLevel.isEndless)
-            Positioned(
-              top: 120,
-              left: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.55),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '💋 Kisses: ${controller.kissCount}/${controller.currentLevel.targetKisses}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-
-          // Controls & KISS Button
+          // Bottom Controls & Big 💋 KISS Button
           Positioned(
-            bottom: 20,
+            bottom: 24,
             left: 20,
             right: 20,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // D-Pad Directional Arrows
-                _buildDPad(),
+                // Lane Switch Quick Buttons (Left / Right)
+                Row(
+                  children: [
+                    _controlButton(
+                      icon: Icons.arrow_back,
+                      label: 'LEFT',
+                      onTap: () => controller.swipeLeft(),
+                    ),
+                    const SizedBox(width: 10),
+                    _controlButton(
+                      icon: Icons.arrow_forward,
+                      label: 'RIGHT',
+                      onTap: () => controller.swipeRight(),
+                    ),
+                  ],
+                ),
 
-                // Action Buttons (Jump, Dash, and big KISS)
-                _buildActionButtons(),
+                // Jump and Slide Quick Buttons
+                Row(
+                  children: [
+                    _controlButton(
+                      icon: Icons.arrow_upward,
+                      label: 'JUMP',
+                      color: Colors.deepPurpleAccent,
+                      onTap: () => controller.swipeUp(),
+                    ),
+                    const SizedBox(width: 10),
+                    _controlButton(
+                      icon: Icons.arrow_downward,
+                      label: 'SLIDE',
+                      color: Colors.teal,
+                      onTap: () => controller.swipeDown(),
+                    ),
+                  ],
+                ),
+
+                // BIG 💋 KISS BUTTON (lights up neon pink when near pedestrian!)
+                GestureDetector(
+                  onTap: canKiss ? () => controller.performKiss() : null,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    width: canKiss ? 84 : 70,
+                    height: canKiss ? 84 : 70,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: canKiss
+                            ? [const Color(0xFFFF4081), const Color(0xFFE91E63)]
+                            : [Colors.grey.shade700, Colors.grey.shade900],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: canKiss ? Colors.white : Colors.white24,
+                        width: canKiss ? 4 : 2,
+                      ),
+                      boxShadow: canKiss
+                          ? [
+                              const BoxShadow(
+                                color: Colors.pinkAccent,
+                                blurRadius: 20,
+                                spreadRadius: 4,
+                              )
+                            ]
+                          : [],
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('💋', style: TextStyle(fontSize: canKiss ? 32 : 24)),
+                          Text(
+                            'KISS',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: canKiss ? 12 : 10,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -204,177 +313,33 @@ class GameHUD extends StatelessWidget {
     );
   }
 
-  Widget _buildDPad() {
-    return Container(
-      width: 140,
-      height: 140,
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.35),
-        shape: BoxShape.circle,
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Up
-          Positioned(
-            top: 6,
-            child: _dPadButton(
-              icon: Icons.keyboard_arrow_up,
-              onDown: () => controller.inputY = -1.0,
-              onUp: () => controller.inputY = 0.0,
-            ),
-          ),
-          // Down
-          Positioned(
-            bottom: 6,
-            child: _dPadButton(
-              icon: Icons.keyboard_arrow_down,
-              onDown: () => controller.inputY = 1.0,
-              onUp: () => controller.inputY = 0.0,
-            ),
-          ),
-          // Left
-          Positioned(
-            left: 6,
-            child: _dPadButton(
-              icon: Icons.keyboard_arrow_left,
-              onDown: () => controller.inputX = -1.0,
-              onUp: () => controller.inputX = 0.0,
-            ),
-          ),
-          // Right
-          Positioned(
-            right: 6,
-            child: _dPadButton(
-              icon: Icons.keyboard_arrow_right,
-              onDown: () => controller.inputX = 1.0,
-              onUp: () => controller.inputX = 0.0,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _dPadButton({
+  Widget _controlButton({
     required IconData icon,
-    required VoidCallback onDown,
-    required VoidCallback onUp,
+    required String label,
+    Color color = Colors.black45,
+    required VoidCallback onTap,
   }) {
     return GestureDetector(
-      onTapDown: (_) => onDown(),
-      onTapUp: (_) => onUp(),
-      onTapCancel: () => onUp(),
+      onTap: onTap,
       child: Container(
-        width: 44,
-        height: 44,
+        width: 52,
+        height: 52,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.3),
-          shape: BoxShape.circle,
+          color: color.withOpacity(0.7),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white38),
         ),
-        child: Icon(icon, color: Colors.white, size: 30),
-      ),
-    );
-  }
-
-  Widget _buildActionButtons() {
-    final canKiss = controller.eligibleKissTarget != null;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Secondary actions: Jump and Dash
-        Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            GestureDetector(
-              onTap: () => controller.playerJump(),
-              child: Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: Colors.deepPurpleAccent.withOpacity(0.8),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                child: const Center(
-                  child: Text('🦘', style: TextStyle(fontSize: 24)),
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            GestureDetector(
-              onTap: () => controller.playerDash(),
-              child: Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.8),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                child: const Center(
-                  child: Text('💨', style: TextStyle(fontSize: 24)),
-                ),
-              ),
+            Icon(icon, color: Colors.white, size: 24),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
             ),
           ],
         ),
-        const SizedBox(height: 12),
-
-        // BIG 💋 KISS BUTTON (Pulsates when target is near!)
-        GestureDetector(
-          onTap: canKiss ? () => controller.performKiss() : null,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: canKiss ? 88 : 74,
-            height: canKiss ? 88 : 74,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: canKiss
-                    ? [const Color(0xFFFF4081), const Color(0xFFE91E63)]
-                    : [Colors.grey.shade600, Colors.grey.shade800],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: canKiss ? Colors.white : Colors.white24,
-                width: canKiss ? 4 : 2,
-              ),
-              boxShadow: canKiss
-                  ? [
-                      const BoxShadow(
-                        color: Colors.pinkAccent,
-                        blurRadius: 18,
-                        spreadRadius: 4,
-                      )
-                    ]
-                  : [],
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '💋',
-                    style: TextStyle(fontSize: canKiss ? 36 : 28),
-                  ),
-                  Text(
-                    'KISS',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: canKiss ? 13 : 11,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.1,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
