@@ -1,0 +1,1455 @@
+# MASTER DEVELOPMENT PROMPT — KISS & RUN MOBILE GAME
+
+You are an expert mobile game developer, game designer, UI/UX designer, and Android build engineer.
+
+Build a complete, polished, production-ready mobile game called **"Kiss & Run"**.
+
+The game should be a funny, chaotic, cartoon-style mobile game based on a very simple gameplay loop:
+
+**APPROACH → CHOOSE CHARACTER → KISS → REACTION → CONSEQUENCE → RUN/ESCAPE → SCORE → NEXT ENCOUNTER**
+
+The game must be easy to understand within 5 seconds, funny, highly replayable, and suitable for publishing on Google Play.
+
+---
+
+# 1. CORE GAME CONCEPT
+
+The player controls a funny fictional adult character walking/running through different environments.
+
+The player encounters other fictional adult characters.
+
+The player can approach a character and tap a **KISS** button.
+
+After the kiss, the NPC reacts randomly according to its personality.
+
+The reaction must have a real gameplay consequence.
+
+The player then has to deal with that consequence.
+
+Examples:
+
+* NPC loves the kiss → gives reward / follows player / speed boost
+* NPC gets angry → chases player
+* NPC slaps player → health decreases
+* NPC calls police → police chase begins
+* NPC laughs → nearby NPCs become distracted
+* NPC screams → crowd gathers
+* NPC calls friends → multiple NPCs chase player
+* NPC kisses back → temporary speed boost
+* NPC throws an object → obstacle appears
+* NPC runs away → player can chase them for bonus points
+* NPC gives coins → player collects reward
+* NPC is secretly dangerous → unexpected trap
+
+The game should be humorous and exaggerated rather than realistic.
+
+All characters must clearly be fictional adults.
+
+Do NOT include explicit sexual content, nudity, sexual acts, or minors.
+
+The kiss should be represented as a short, harmless cartoon interaction.
+
+---
+
+# 2. IMPORTANT GAME DESIGN PRINCIPLE
+
+The most important mechanic is:
+
+## EVERY REACTION MUST HAVE A CONSEQUENCE.
+
+Do not make reactions cosmetic only.
+
+For example:
+
+Kiss → Girl laughs → nearby people notice → crowd gathers → player gets surrounded → player must escape.
+
+Another:
+
+Kiss → Guy becomes angry → starts chasing → knocks over a street vendor → vendor chases player → dog gets involved → dog chases player.
+
+Another:
+
+Kiss → NPC loves it → gives player a heart → temporary speed boost.
+
+Create a system where reactions can trigger secondary events.
+
+---
+
+# 3. CHAIN REACTION SYSTEM
+
+Implement a chain-reaction system.
+
+Example:
+
+Player kisses NPC #1.
+
+NPC #1 becomes angry.
+
+NPC #1 starts chasing the player.
+
+While chasing, NPC #1 collides with NPC #2.
+
+NPC #2 becomes angry.
+
+NPC #2 calls security.
+
+Security begins chasing the player.
+
+Security collides with a food cart.
+
+Food cart falls over.
+
+Food spills onto the road.
+
+Player slips.
+
+The player loses speed.
+
+The original NPC catches up.
+
+This should feel chaotic and funny.
+
+Not every encounter needs a chain reaction, but the system must support them.
+
+Use a probability-based event system.
+
+---
+
+# 4. PLAYER
+
+Create a customizable cartoon player character.
+
+Initially provide:
+
+* Male character
+* Female character
+
+Both should be fictional adults.
+
+Allow the player to select the character before starting.
+
+Character customization can initially include:
+
+* Hair
+* Shirt
+* Pants
+* Shoes
+* Skin tone
+* Accessories
+
+Keep customization simple for MVP.
+
+Create the architecture so additional cosmetics can easily be added later.
+
+---
+
+# 5. NPC SYSTEM
+
+Create multiple fictional adult NPC types.
+
+Initial NPCs:
+
+1. Happy Girl
+2. Angry Girl
+3. Shy Girl
+4. Funny Guy
+5. Angry Guy
+6. Romantic Guy
+7. Serious Businessman
+8. Tourist
+9. Fitness Guy
+10. Grandma/older adult character
+11. Security Guard
+12. Police Officer
+13. Street Vendor
+14. Food Worker
+15. Random Pedestrian
+
+Each NPC should have different probabilities for reactions.
+
+Example:
+
+Happy Girl:
+
+* 50% likes it
+* 20% laughs
+* 15% runs away
+* 10% gets angry
+* 5% calls friends
+
+Angry Guy:
+
+* 60% chases
+* 20% slaps
+* 10% calls security
+* 10% throws object
+
+These values should NOT be hardcoded throughout the game.
+
+Create a configurable reaction/data system.
+
+---
+
+# 6. REACTION TYPES
+
+Create at least these reactions:
+
+## POSITIVE
+
+### LOVE
+
+NPC reacts positively.
+
+Consequence:
+
+* +coins
+* +score
+* possible heart pickup
+* temporary speed boost
+
+### KISS BACK
+
+NPC kisses player back.
+
+Consequence:
+
+* speed boost
+* bonus score
+* combo increase
+
+### GIFT
+
+NPC gives player coins.
+
+Consequence:
+
+* collect coins
+
+### JOIN
+
+NPC temporarily follows player.
+
+Consequence:
+
+* follower multiplier
+
+---
+
+## NEUTRAL/FUNNY
+
+### LAUGH
+
+NPC laughs.
+
+Consequence:
+
+* nearby NPCs notice
+* chance of chain reaction
+
+### RUN AWAY
+
+NPC runs away.
+
+Consequence:
+
+* player can chase them
+* catching them gives bonus
+
+### FREEZE
+
+NPC becomes shocked.
+
+Consequence:
+
+* temporary time slowdown
+
+### TAKE PHOTO
+
+NPC takes a photo of the player.
+
+Consequence:
+
+* increases "Fame" meter
+
+---
+
+## NEGATIVE
+
+### SLAP
+
+NPC slaps player.
+
+Consequence:
+
+* health decreases
+* player briefly slows down
+
+### CHASE
+
+NPC chases player.
+
+Consequence:
+
+* player must escape
+
+### SCREAM
+
+NPC screams.
+
+Consequence:
+
+* nearby NPCs become alert
+
+### CALL FRIENDS
+
+Consequence:
+
+* additional NPCs spawn and chase
+
+### CALL POLICE
+
+Consequence:
+
+* police chase starts
+
+### THROW OBJECT
+
+NPC throws an object.
+
+Consequence:
+
+* moving obstacle
+
+### CROWD
+
+Multiple NPCs gather.
+
+Consequence:
+
+* player must find an escape route
+
+---
+
+# 7. HEALTH SYSTEM
+
+Player has health.
+
+Example:
+
+❤️❤️❤️
+
+Different events remove health.
+
+Slap:
+
+* -1 health
+
+Collision:
+
+* -1 health
+
+Police collision:
+
+* -2 health
+
+When health reaches zero:
+
+## CAUGHT!
+
+Show funny game-over animation.
+
+Then provide:
+
+* Restart
+* Continue after rewarded ad
+* Return Home
+
+---
+
+# 8. RUNNING SYSTEM
+
+The game should have simple, responsive controls.
+
+Preferred control:
+
+* Swipe left/right = move
+* Swipe up = jump
+* Swipe down = slide
+
+Alternatively, if the selected game engine makes this difficult, implement:
+
+* Left button
+* Right button
+* Jump button
+
+The controls must work smoothly on mobile.
+
+The player should automatically move forward during chase sequences.
+
+---
+
+# 9. KISS INTERACTION
+
+When the player gets close enough to an eligible NPC:
+
+Show:
+
+## 💋 KISS
+
+button.
+
+When pressed:
+
+1. Brief cartoon animation
+2. Camera/character reaction
+3. Select reaction
+4. Trigger consequence
+5. Continue gameplay
+
+Do not make the kiss animation sexual.
+
+It should be humorous and cartoon-like.
+
+Example:
+
+Player quickly leans forward.
+
+NPC reacts dramatically.
+
+Then immediately trigger the reaction.
+
+---
+
+# 10. SCORE SYSTEM
+
+Create a score system.
+
+Score should depend on:
+
+* Successful interactions
+* Escaping chases
+* Chain reactions
+* Collecting coins
+* Distance traveled
+* Combo
+* Rare reactions
+
+Example:
+
+Kiss:
++10
+
+Successful escape:
++50
+
+Chain reaction:
++100
+
+Rare reaction:
++250
+
+Perfect escape:
++500
+
+Create score multipliers.
+
+Example:
+
+x1
+x2
+x3
+x5
+
+Combo resets when the player gets caught.
+
+---
+
+# 11. COINS
+
+Create an in-game currency called:
+
+## HEART COINS ❤️
+
+Players earn Heart Coins by:
+
+* kissing NPCs
+* escaping
+* completing levels
+* chain reactions
+* daily rewards
+
+Use coins to unlock:
+
+* Characters
+* Clothes
+* Accessories
+* Environments
+* Funny effects
+
+Do not require coins to play the core game.
+
+---
+
+# 12. COMBO SYSTEM
+
+Create a combo system.
+
+Example:
+
+Kiss → Escape → Kiss → Escape → Chain Reaction
+
+Combo:
+
+🔥 x5
+
+Display combo prominently.
+
+If the player gets caught:
+
+Combo resets.
+
+Add satisfying audio/visual feedback.
+
+---
+
+# 13. LEVEL STRUCTURE
+
+Create level-based progression.
+
+Initial levels:
+
+### Level 1 — Quiet Street
+
+Basic NPCs.
+
+### Level 2 — Shopping Street
+
+More NPCs.
+
+### Level 3 — Park
+
+Dogs and additional events.
+
+### Level 4 — Restaurant Area
+
+Food-related chaos.
+
+### Level 5 — Office District
+
+Business NPCs and security.
+
+### Level 6 — Beach
+
+Tourists and lifeguards.
+
+### Level 7 — Wedding
+
+Large crowd and chain reactions.
+
+### Level 8 — Airport
+
+Security and luggage obstacles.
+
+### Level 9 — Stadium
+
+Large crowds.
+
+### Level 10 — City Center
+
+High difficulty.
+
+After Level 10, create an endless mode using procedural/randomized encounters.
+
+---
+
+# 14. ENDLESS MODE
+
+Create an endless mode.
+
+The environment continuously generates:
+
+* NPCs
+* obstacles
+* reaction events
+* chase events
+* coins
+* power-ups
+
+Difficulty gradually increases.
+
+Track:
+
+## BEST SCORE
+
+## LONGEST RUN
+
+## MOST KISSES
+
+## LONGEST COMBO
+
+## MOST CHAIN REACTIONS
+
+---
+
+# 15. RANDOM EVENTS
+
+Create random events during gameplay.
+
+Examples:
+
+### "POLICE SPOTTED!"
+
+Police begin chasing the player.
+
+### "YOUR EX IS HERE!"
+
+A special NPC appears.
+
+### "EVERYONE SAW THAT!"
+
+Nearby NPCs become angry.
+
+### "LUCKY KISS!"
+
+Next reaction is guaranteed positive.
+
+### "CHAOS MODE!"
+
+All NPC reactions become exaggerated for 10 seconds.
+
+### "DOG ATTACK!"
+
+A dog begins chasing the player.
+
+### "FREE COINS!"
+
+Coins appear everywhere.
+
+These should make gameplay unpredictable.
+
+---
+
+# 16. POWER-UPS
+
+Add simple power-ups.
+
+### ❤️ HEART SHIELD
+
+Protects player from one negative reaction.
+
+### ⚡ SPEED BOOST
+
+Player runs faster.
+
+### 🧲 HEART MAGNET
+
+Automatically collects coins.
+
+### 🕐 SLOW MOTION
+
+Slows NPCs.
+
+### 😇 ANGEL MODE
+
+Next kiss is guaranteed positive.
+
+### 😈 CHAOS MODE
+
+Increases chance of chain reactions.
+
+---
+
+# 17. FUNNY AUDIO
+
+Use cartoon-style sound effects.
+
+Examples:
+
+* Kiss sound
+* Slap
+* Scream
+* Running
+* Police siren
+* Cartoon fall
+* Boing
+* Whoosh
+* Crowd reaction
+* Laugh
+* Surprise sound
+
+Avoid copyrighted music/audio.
+
+Use placeholder/generated/original assets where necessary.
+
+Make the game playable even if sound is disabled.
+
+---
+
+# 18. UI
+
+Create a polished modern cartoon UI.
+
+HOME SCREEN:
+
+Logo:
+
+# KISS & RUN
+
+Buttons:
+
+▶ PLAY
+
+👤 CHARACTERS
+
+👕 CUSTOMIZE
+
+🏆 LEADERBOARD
+
+🎁 DAILY REWARD
+
+⚙ SETTINGS
+
+Display:
+
+❤️ Heart Coins
+
+---
+
+# 19. GAME HUD
+
+During gameplay show:
+
+Top-left:
+
+❤️ Health
+
+Top-center:
+
+🏆 Score
+
+Top-right:
+
+❤️ Coins
+
+Below score:
+
+🔥 Combo
+
+Bottom:
+
+Movement controls if required.
+
+Show KISS button only when the player is close enough to an eligible NPC.
+
+---
+
+# 20. GAME OVER
+
+When caught:
+
+Show funny animation.
+
+Text:
+
+## YOU GOT CAUGHT! 😂
+
+Display:
+
+Score
+
+Best Score
+
+Kisses
+
+Coins
+
+Longest Combo
+
+Chain Reactions
+
+Buttons:
+
+▶ TRY AGAIN
+
+🎁 WATCH AD TO CONTINUE
+
+🏠 HOME
+
+---
+
+# 21. DAILY REWARD
+
+Create a simple daily reward system.
+
+Example:
+
+Day 1 → 100 coins
+
+Day 2 → 150
+
+Day 3 → 250
+
+Day 4 → Power-up
+
+Day 5 → 500
+
+Day 6 → Cosmetic
+
+Day 7 → 1,000
+
+Reset/continue appropriately.
+
+---
+
+# 22. ACHIEVEMENTS
+
+Add achievements.
+
+Examples:
+
+💋 First Kiss
+Perform your first kiss.
+
+🏃 Escape Artist
+Escape 10 chases.
+
+🔥 Chaos Master
+Trigger 5 chain reactions.
+
+🚔 Wanted
+Get chased by police.
+
+😂 Make Everyone Angry
+Trigger a crowd reaction.
+
+❤️ Heart Collector
+Collect 1,000 Heart Coins.
+
+🏆 Untouchable
+Complete a level without losing health.
+
+---
+
+# 23. LEADERBOARD
+
+Create a local high-score system.
+
+Architecture should also allow future online leaderboard integration.
+
+Track:
+
+* Highest Score
+* Longest Run
+* Most Kisses
+* Longest Combo
+
+For MVP, local leaderboard is acceptable.
+
+---
+
+# 24. ADS / MONETIZATION
+
+Use a free-to-play model.
+
+Implement Google Mobile Ads architecture.
+
+Use:
+
+### Rewarded Ads
+
+Allow:
+
+* Continue after getting caught
+* Double coins
+* Bonus reward
+* Revive once
+
+### Interstitial Ads
+
+Show only at appropriate breaks between levels/runs.
+
+Do NOT show an ad immediately after every interaction.
+
+Do NOT make the game frustrating because of ads.
+
+### Premium
+
+Add:
+
+## REMOVE ADS
+
+Future-ready architecture for in-app purchase.
+
+---
+
+# 25. PRIVACY
+
+The game should not require unnecessary permissions.
+
+Do NOT request:
+
+* Contacts
+* SMS
+* Phone calls
+* Location
+* Microphone
+* Camera
+
+unless a future feature genuinely requires them.
+
+The initial version should work without those permissions.
+
+---
+
+# 26. SAVE SYSTEM
+
+Save locally:
+
+* Coins
+* Unlocked characters
+* Customizations
+* Completed levels
+* High score
+* Best combo
+* Achievements
+* Settings
+* Daily reward state
+
+The player should not lose progress when closing the app.
+
+---
+
+# 27. GRAPHICS STYLE
+
+Use:
+
+* Colorful cartoon graphics
+* Exaggerated facial expressions
+* Simple 3D or 2.5D characters
+* Smooth animations
+* Bright environments
+* Funny reaction animations
+
+Do NOT attempt photorealistic graphics.
+
+The game should look like a polished casual mobile game.
+
+Use original assets or placeholders that can later be replaced.
+
+Do not use copyrighted characters, logos, brands, celebrities, or copyrighted music.
+
+---
+
+# 28. PERFORMANCE
+
+Target Android phones across a wide range of hardware.
+
+Requirements:
+
+* Stable 60 FPS where hardware permits
+* Fast startup
+* Small APK/AAB size where possible
+* Object pooling for repeated NPCs
+* Efficient spawning/despawning
+* Avoid unnecessary memory usage
+* Avoid excessive particle effects
+* Handle different screen resolutions/aspect ratios
+
+---
+
+# 29. GAME ENGINE
+
+Before implementation, inspect the existing project.
+
+If no game project exists, use the most appropriate supported engine for this project.
+
+Prefer:
+
+**Godot 4.x**
+
+for this game because it is lightweight and suitable for a small 2D/2.5D mobile game.
+
+If the environment already has a different game framework configured, use the existing framework unless there is a compelling technical reason to change it.
+
+The final project must be buildable for Android.
+
+---
+
+# 30. PROJECT ARCHITECTURE
+
+Keep the code modular.
+
+Suggested structure:
+
+/scenes
+/scripts
+/components
+/characters
+/npcs
+/reactions
+/events
+/levels
+/ui
+/audio
+/assets
+/data
+/save
+/ads
+
+Create separate systems for:
+
+* Player
+* NPC
+* Reaction Manager
+* Consequence Manager
+* Chain Reaction Manager
+* Level Manager
+* Score Manager
+* Coin Manager
+* Save Manager
+* Audio Manager
+* UI Manager
+* Ads Manager
+
+Do not put the entire game inside one script.
+
+---
+
+# 31. DATA-DRIVEN REACTIONS
+
+Create reaction definitions using data/resources rather than hardcoding every reaction.
+
+Each reaction should support:
+
+* Name
+* Probability
+* Animation
+* Sound
+* Score
+* Coin reward
+* Health effect
+* Movement effect
+* Spawn event
+* Chain reaction probability
+* Duration
+
+This will allow new reactions to be added easily.
+
+---
+
+# 32. DIFFICULTY
+
+Difficulty should gradually increase.
+
+Increase:
+
+* NPC movement speed
+* Reaction probability
+* Chase duration
+* Number of NPCs
+* Obstacle frequency
+* Chain reaction frequency
+* Police frequency
+* Environmental hazards
+
+Do not make early levels frustrating.
+
+---
+
+# 33. TUTORIAL
+
+Create a very short tutorial.
+
+First screen:
+
+> WALK TOWARD SOMEONE
+
+Second:
+
+> TAP 💋 KISS
+
+Third:
+
+> WATCH THEIR REACTION!
+
+Fourth:
+
+> RUN! 😂
+
+Then immediately start gameplay.
+
+Do not create a long tutorial.
+
+---
+
+# 34. FUNNY TEXT
+
+Create a system for random funny messages.
+
+Examples:
+
+After successful kiss:
+
+> "Smooth."
+
+> "That actually worked."
+
+> "Risky move."
+
+After getting slapped:
+
+> "Worth it?"
+
+> "You knew this would happen."
+
+> "RUN BRO!"
+
+After police chase:
+
+> "Okay... maybe that was a bad idea."
+
+After chain reaction:
+
+> "HOW DID THIS HAPPEN?!"
+
+After getting caught:
+
+> "You should've run faster."
+
+Keep text short.
+
+---
+
+# 35. CHARACTER PERSONALITIES
+
+Give NPCs personality profiles.
+
+Example:
+
+SHY:
+
+High chance of:
+
+* blush
+* run
+* freeze
+
+ANGRY:
+
+High chance:
+
+* slap
+* chase
+* call police
+
+ROMANTIC:
+
+High chance:
+
+* kiss back
+* gift
+* follow
+
+CHAOTIC:
+
+High chance:
+
+* throw objects
+* call friends
+* create chain reaction
+
+This makes characters feel different.
+
+---
+
+# 36. CAMERA
+
+Use a third-person/top-down/isometric camera depending on the selected engine implementation.
+
+The camera should:
+
+* Follow player smoothly
+* Show enough area to see upcoming NPCs
+* Zoom slightly during chase
+* Shake slightly during major events
+* Return smoothly afterward
+
+Avoid excessive camera shake.
+
+---
+
+# 37. FEEL / JUICE
+
+The game should feel satisfying.
+
+Add:
+
+* Small screen shake
+* Pop animations
+* Floating score text
+* Coin collection effects
+* Combo effects
+* Slow motion for rare events
+* Character facial expressions
+* Funny reaction animations
+* Particle effects
+
+Keep everything lightweight.
+
+---
+
+# 38. MVP PRIORITY
+
+Do NOT spend excessive time building advanced systems before the basic game is playable.
+
+Build in this order:
+
+### PHASE 1
+
+Playable character.
+
+### PHASE 2
+
+Basic environment.
+
+### PHASE 3
+
+NPC spawning.
+
+### PHASE 4
+
+Kiss interaction.
+
+### PHASE 5
+
+Reaction system.
+
+### PHASE 6
+
+Consequences.
+
+### PHASE 7
+
+Chase system.
+
+### PHASE 8
+
+Chain reactions.
+
+### PHASE 9
+
+Score/coins.
+
+### PHASE 10
+
+Levels.
+
+### PHASE 11
+
+UI.
+
+### PHASE 12
+
+Save system.
+
+### PHASE 13
+
+Ads architecture.
+
+### PHASE 14
+
+Polish.
+
+### PHASE 15
+
+Android release build.
+
+---
+
+# 39. DEVELOPMENT RULE
+
+Do not just create a mockup.
+
+Create an actually playable game.
+
+If something cannot be implemented immediately because final artwork/audio is unavailable, use clean placeholder assets and continue building the underlying functionality.
+
+Do not stop at:
+
+* UI mockups
+* screenshots
+* design documents
+* pseudocode
+
+The final result must be an executable game.
+
+---
+
+# 40. TESTING
+
+Before considering the project complete, test:
+
+* New game
+* Restart
+* Game over
+* Continue
+* Coins
+* Score
+* Combo
+* NPC reactions
+* Chain reactions
+* Level progression
+* Save/load
+* Closing/reopening app
+* Different screen sizes
+* Pause/resume
+* Sound on/off
+* Vibration on/off
+* Android back button
+* No internet connection
+* Ads unavailable
+* Low-memory conditions
+
+Fix crashes and obvious gameplay bugs.
+
+---
+
+# 41. ANDROID BUILD
+
+Configure the project for Android.
+
+Application name:
+
+**Kiss & Run**
+
+Create appropriate:
+
+* Android package/application ID
+* App icon
+* Splash screen
+* Version name
+* Version code
+* Orientation settings
+* Android permissions
+* Release configuration
+
+Generate an Android App Bundle:
+
+**.aab**
+
+suitable for Google Play Console.
+
+Do not include unnecessary permissions.
+
+---
+
+# 42. PLAY STORE READINESS
+
+Prepare placeholders/content for:
+
+* App icon
+* Feature graphic
+* Screenshots
+* Short description
+* Full description
+* Privacy policy URL placeholder
+* Content rating considerations
+* Data safety considerations
+
+The game should be designed with Google Play policies in mind.
+
+---
+
+# 43. IMPORTANT — ORIGINALITY
+
+Do not copy another game's:
+
+* Code
+* Characters
+* Artwork
+* UI
+* Sounds
+* Logo
+* Name
+* Levels
+
+The concept can use the general "kiss and run" humorous mechanic, but the actual implementation, characters, art, UI, animations, environments, progression and branding must be original.
+
+---
+
+# 44. FINAL DELIVERABLE
+
+At the end, provide:
+
+1. Complete source code
+2. Complete project structure
+3. All configuration files
+4. Placeholder assets where required
+5. Android build configuration
+6. Debug APK
+7. Release AAB if signing configuration allows
+8. Instructions for replacing placeholder assets
+9. Instructions for configuring AdMob
+10. Instructions for generating the final signed Play Store AAB
+11. List of known limitations
+12. List of recommended future features
+
+---
+
+# 45. FUTURE FEATURES — ARCHITECT FOR THEM NOW
+
+Do not necessarily implement all of these in MVP, but structure the code so they can be added later:
+
+* Online leaderboards
+* Multiplayer
+* More characters
+* More environments
+* Character skins
+* Seasonal events
+* Daily challenges
+* Special NPCs
+* Boss encounters
+* Story mode
+* More reaction types
+* More chain reactions
+* Cloud save
+* Achievements
+* Google Play Games integration
+* More languages
+* Arabic localization
+* Special events
+* Cosmetic shop
+
+---
+
+# 46. MOST IMPORTANT DESIGN GOAL
+
+The player should constantly think:
+
+> "What is going to happen if I kiss this person?"
+
+That uncertainty is the core of the game.
+
+The game should reward experimentation.
+
+A player should be able to replay the same environment multiple times and experience different outcomes because of randomized NPC personalities and reaction chains.
+
+The game should be:
+
+**Simple to play.**
+
+**Funny to watch.**
+
+**Chaotic to master.**
+
+**Easy to replay.**
+
+**Easy to expand with new reactions.**
+
+Start by inspecting the current workspace/project.
+
+Then implement the game incrementally.
+
+Do not ask unnecessary questions. Make sensible technical decisions and continue building.
+
+After implementation, run the project, test it, fix errors, and leave the workspace in a buildable state.
